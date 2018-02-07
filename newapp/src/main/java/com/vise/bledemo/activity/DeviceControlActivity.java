@@ -28,6 +28,7 @@ import com.vise.bledemo.common.ToastUtil;
 import com.vise.bledemo.event.CallbackDataEvent;
 import com.vise.bledemo.event.ConnectEvent;
 import com.vise.bledemo.event.NotifyDataEvent;
+import com.vise.log.ViseLog;
 import com.vise.xsnow.cache.SpCache;
 import com.vise.xsnow.event.BusManager;
 import com.vise.xsnow.event.Subscribe;
@@ -60,6 +61,7 @@ public class DeviceControlActivity extends AppCompatActivity {
     private SpCache mSpCache;
     //设备信息
     private BluetoothLeDevice mDevice;
+    private BluetoothLeDevice mDevice2;
     //输出数据展示
     private StringBuilder mOutputInfo = new StringBuilder();
     private List<BluetoothGattService> mGattServices = new ArrayList<>();
@@ -86,6 +88,10 @@ public class DeviceControlActivity extends AppCompatActivity {
         mDevice = getIntent().getParcelableExtra(DeviceDetailActivity.EXTRA_DEVICE);
         if (mDevice != null) {
             ((TextView) findViewById(R.id.device_address)).setText(mDevice.getAddress());
+        }
+        mDevice2 = getIntent().getParcelableExtra(DeviceDetailActivity.EXTRA_DEVICE2);
+        if (mDevice2 != null) {
+            ToastUtil.showToast(DeviceControlActivity.this, mDevice2.getAddress() + " found!");
         }
 
         mSpCache = new SpCache(this);
@@ -129,7 +135,7 @@ public class DeviceControlActivity extends AppCompatActivity {
     public void showConnectedDevice(ConnectEvent event) {
         if (event != null) {
             if (event.isSuccess()) {
-                ToastUtil.showToast(DeviceControlActivity.this, "Connect Success!");
+                ToastUtil.showToast(DeviceControlActivity.this, event.getDeviceMirror().getBluetoothLeDevice().getName() + " Connect Success!");
                 mConnectionState.setText("true");
                 invalidateOptionsMenu();
                 if (event.getDeviceMirror() != null && event.getDeviceMirror().getBluetoothGatt() != null) {
@@ -165,10 +171,23 @@ public class DeviceControlActivity extends AppCompatActivity {
 
     @Subscribe
     public void showDeviceNotifyData(NotifyDataEvent event) {
+        if (event != null && event.getData() != null) {
+            ViseLog.i("&& " + event.getBluetoothLeDevice().getName() + HexUtil.encodeHexStr(event.getData()));
+        }
+        /*
         if (event != null && event.getData() != null && event.getBluetoothLeDevice() != null
                 && event.getBluetoothLeDevice().getAddress().equals(mDevice.getAddress())) {
             mOutputInfo.append(HexUtil.encodeHexStr(event.getData())).append("\n");
             mOutput.setText(mOutputInfo.toString());
+        }
+        */
+        if (event != null && event.getData() != null && event.getBluetoothLeDevice() != null) {
+            if (event.getBluetoothLeDevice().getAddress().equals(mDevice.getAddress())) {
+                mOutput.setText(mDevice.getAddress() + ": " + HexUtil.encodeHexStr(event.getData()));
+            }
+            else if (event.getBluetoothLeDevice().getAddress().equals(mDevice2.getAddress())) {
+                mInput.setText(mDevice2.getAddress() + ": " + HexUtil.encodeHexStr(event.getData()));
+            }
         }
     }
 
@@ -211,6 +230,11 @@ public class DeviceControlActivity extends AppCompatActivity {
                 if (!BluetoothDeviceManager.getInstance().isConnected(mDevice)) {
                     BluetoothDeviceManager.getInstance().connect(mDevice);
                     invalidateOptionsMenu();
+                }
+
+               if (!BluetoothDeviceManager.getInstance().isConnected(mDevice2)) {
+                    ToastUtil.showToast(DeviceControlActivity.this, "..............2nd connect");
+                    BluetoothDeviceManager.getInstance().connect(mDevice2);
                 }
                 break;
             case R.id.menu_disconnect://断开设备
@@ -342,12 +366,18 @@ public class DeviceControlActivity extends AppCompatActivity {
                 } else if ((charaProp & BluetoothGattCharacteristic.PROPERTY_READ) > 0) {
                     BluetoothDeviceManager.getInstance().bindChannel(mDevice, PropertyType.PROPERTY_READ, service.getUuid(), characteristic.getUuid(), null);
                     BluetoothDeviceManager.getInstance().read(mDevice);
+                    // 2nd device
+                    BluetoothDeviceManager.getInstance().bindChannel(mDevice2, PropertyType.PROPERTY_READ, service.getUuid(), characteristic.getUuid(), null);
+                    BluetoothDeviceManager.getInstance().read(mDevice2);
                 }
                 if ((charaProp & BluetoothGattCharacteristic.PROPERTY_NOTIFY) > 0) {
                     mSpCache.put(NOTIFY_CHARACTERISTIC_UUID_KEY + mDevice.getAddress(), characteristic.getUuid().toString());
                     ((EditText) findViewById(R.id.show_notify_characteristic)).setText(characteristic.getUuid().toString());
                     BluetoothDeviceManager.getInstance().bindChannel(mDevice, PropertyType.PROPERTY_NOTIFY, service.getUuid(), characteristic.getUuid(), null);
                     BluetoothDeviceManager.getInstance().registerNotify(mDevice, false);
+                    // 2nd device
+                    BluetoothDeviceManager.getInstance().bindChannel(mDevice2, PropertyType.PROPERTY_NOTIFY, service.getUuid(), characteristic.getUuid(), null);
+                    BluetoothDeviceManager.getInstance().registerNotify(mDevice2, false);
                 } else if ((charaProp & BluetoothGattCharacteristic.PROPERTY_INDICATE) > 0) {
                     mSpCache.put(NOTIFY_CHARACTERISTIC_UUID_KEY + mDevice.getAddress(), characteristic.getUuid().toString());
                     ((EditText) findViewById(R.id.show_notify_characteristic)).setText(characteristic.getUuid().toString());

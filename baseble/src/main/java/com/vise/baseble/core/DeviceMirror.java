@@ -717,8 +717,17 @@ public class DeviceMirror {
                         bluetoothGattDescriptor.setValue(BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE);
                     }
                 }
+                try
+                {
+                    Thread.sleep(100);
+                }
+                catch(InterruptedException ex)
+                {
+                    //Thread.currentThread().interrupt();
+                }
                 if (bluetoothGatt != null) {
-                    bluetoothGatt.writeDescriptor(bluetoothGattDescriptor);
+                    boolean writeRet = bluetoothGatt.writeDescriptor(bluetoothGattDescriptor);
+                    ViseLog.i("writeDescriptor return " + writeRet);
                 }
             }
         }

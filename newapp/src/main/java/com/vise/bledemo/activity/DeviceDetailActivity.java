@@ -30,9 +30,11 @@ import java.util.TimeZone;
 public class DeviceDetailActivity extends AppCompatActivity {
 
     public static final String EXTRA_DEVICE = "extra_device";
+    public static final String EXTRA_DEVICE2 = "extra_device2";
     private ListView mList;
     private View mEmpty;
     private BluetoothLeDevice mDevice;
+    private BluetoothLeDevice mDevice2;
 
     /**
      * 追加广播包信息
@@ -173,6 +175,7 @@ public class DeviceDetailActivity extends AppCompatActivity {
         mList = (ListView) findViewById(android.R.id.list);
         mList.setEmptyView(mEmpty);
         mDevice = getIntent().getParcelableExtra(EXTRA_DEVICE);
+        mDevice2 = getIntent().getParcelableExtra(EXTRA_DEVICE2);
         pupulateDetails(mDevice);
     }
 
@@ -189,6 +192,9 @@ public class DeviceDetailActivity extends AppCompatActivity {
                 if (mDevice == null) return false;
                 Intent intent = new Intent(DeviceDetailActivity.this, DeviceControlActivity.class);
                 intent.putExtra(DeviceDetailActivity.EXTRA_DEVICE, mDevice);
+                if(mDevice2 != null) {
+                    intent.putExtra(DeviceDetailActivity.EXTRA_DEVICE2, mDevice2);
+                }
                 startActivity(intent);
                 break;
         }

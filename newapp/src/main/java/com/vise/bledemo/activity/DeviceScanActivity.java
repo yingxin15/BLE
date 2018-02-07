@@ -20,6 +20,7 @@ import com.vise.bledemo.adapter.DeviceAdapter;
 import com.vise.log.ViseLog;
 
 import java.util.ArrayList;
+import java.util.Map;
 
 /**
  * 设备扫描展示界面
@@ -88,6 +89,11 @@ public class DeviceScanActivity extends AppCompatActivity {
                 if (device == null) return;
                 Intent intent = new Intent(DeviceScanActivity.this, DeviceDetailActivity.class);
                 intent.putExtra(DeviceDetailActivity.EXTRA_DEVICE, device);
+                // get 2nd device to connect
+                BluetoothLeDevice device2 = (BluetoothLeDevice) adapter.getItem(position+1);
+                if(device2 != null) {
+                    intent.putExtra(DeviceDetailActivity.EXTRA_DEVICE2, device2);
+                }
                 startActivity(intent);
             }
         });
