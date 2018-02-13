@@ -181,6 +181,7 @@ public class DeviceControlActivity extends AppCompatActivity {
             mOutput.setText(mOutputInfo.toString());
         }
         */
+        // note, this is only for display, use mInput for 2nd device
         if (event != null && event.getData() != null && event.getBluetoothLeDevice() != null) {
             if (event.getBluetoothLeDevice().getAddress().equals(mDevice.getAddress())) {
                 mOutput.setText(mDevice.getAddress() + ": " + HexUtil.encodeHexStr(event.getData()));
